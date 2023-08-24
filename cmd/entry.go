@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"newglo/internals/database"
 	"newglo/internals/handlers"
+	"newglo/internals/repositories"
 	"newglo/internals/server"
+	"newglo/internals/services"
 )
 
 func Start() {
@@ -19,10 +21,22 @@ func Start() {
 	if err != nil {
 		fmt.Print(err)
 	}
-	userHandlers := handlers.NewApp(db)
+	defer func(db *database.Database) {
+		err := db.Close()
+		if err != nil {
+			fmt.Print(err)
+		}
+	}(db)
+	//
+	repo := repositories.New(db.DB, db.Client, db.Context)
+
+	userHandlers := services.NewUserService(repo)
+	userRepository := handlers.NewApp(userHandlers)
+
+	//userHandlers := handlers.NewApp(*db)
 	//server
 	httpServer := server.NewServer(
-		userHandlers,
+		userRepository,
 	)
 	httpServer.Initialize()
 

@@ -5,12 +5,16 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v2/utils"
 	jwtware "github.com/gofiber/jwt/v3"
+	"newglo/internals/handlers"
 	"newglo/internals/ports"
+	"time"
 )
 
 const (
@@ -24,7 +28,7 @@ type Server struct {
 	//paymentHandlers ports.IPaymentHandlers
 }
 
-func NewServer(uHandlers ports.UserHandlers) *Server {
+func NewServer(uHandlers *handlers.UserHandlers) *Server {
 	return &Server{
 		userHandlers: uHandlers,
 		//paymentHandlers: pHandlers
@@ -56,15 +60,15 @@ func (s *Server) Initialize() {
 		AllowCredentials: true,
 		ExposeHeaders:    "",
 	}))
-	//app.Use(csrf.New(csrf.Config{
-	//	KeyLookup:      "header:" + HeaderName,
-	//	CookieName:     "csrf_",
-	//	CookieSameSite: "Lax",
-	//	Expiration:     1 * time.Hour,
-	//	KeyGenerator:   utils.UUID,
-	//	ErrorHandler:   defaultErrorHandler,
-	//	Extractor:      CsrfFromHeader(HeaderName),
-	//}))
+	app.Use(csrf.New(csrf.Config{
+		KeyLookup:      "header:" + HeaderName,
+		CookieName:     "csrf_",
+		CookieSameSite: "Lax",
+		Expiration:     1 * time.Hour,
+		KeyGenerator:   utils.UUID,
+		ErrorHandler:   defaultErrorHandler,
+		Extractor:      CsrfFromHeader(HeaderName),
+	}))
 	app.Use(encryptcookie.New(encryptcookie.Config{
 		Key: "secret-thirty-2-character-string",
 	}))

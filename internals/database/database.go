@@ -1,21 +1,19 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/redis/go-redis/v9"
-	"newglo/internals/domain"
 )
+
+var ctx = context.Background()
 
 type Database struct {
 	*sql.DB
 	*redis.Client
-}
-
-func (d Database) Login(user domain.LoginCredentials) error {
-	//TODO implement me
-	panic("implement me")
+	context.Context
 }
 
 // Database settings
@@ -43,5 +41,5 @@ func New(config *DatabaseConfig) (*Database, error) {
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
-	return &Database{db, rdb}, err
+	return &Database{db, rdb, ctx}, err
 }
